@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú de Coctelería de Autor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- VARIABLES --- */
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #242424;
+            --modal-bg: #1f1f1f;
+            --text-main: #f5f5f5;
+            --text-muted: #a0a0a0;
+            --accent: #d4af37;
+            --font-title: 'Cormorant Garamond', serif;
+            --font-body: 'Montserrat', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-body);
+        }
+
+        /* --- HEADER --- */
+        /* --- HEADER MODIFICADO --- */
+        header {
+            text-align: center;
+            padding: 3rem 1rem 2rem 1rem;
+        }
+
+        /* Contenedor flexible para poner Logo + Texto juntos */
+        .brand-container {
+            display: flex;
+            align-items: center; /* Alinea verticalmente al centro */
+            justify-content: center; /* Centra todo el bloque en la pantalla */
+            gap: 1.5rem; /* Espacio entre el logo y el texto */
+            margin-bottom: 0.5rem;
+        }
+
+        .logo {
+            height: 80px; /* Altura del logo (ajústalo según tu imagen) */
+            width: auto;  /* Mantiene la proporción */
+            object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3)); /* Sutil brillo dorado opcional */
+        }
+
+        h1 {
+            font-family: var(--font-title);
+            font-size: 3.5rem;
+            color: var(--accent);
+            letter-spacing: 2px;
+            line-height: 1; /* Evita espacios extra arriba/abajo */
+            margin: 0; /* Quitamos margen para que se alinee con el logo */
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--text-muted);
+            margin-top: 1rem;
+            display: block; /* Asegura que el subtítulo quede debajo del bloque logo/titulo */
+        }
+
+        /* Ajuste para celulares */
+        @media (max-width: 768px) {
+            .brand-container {
+                flex-direction: column; /* En celular, poner logo arriba y texto abajo se ve mejor */
+                gap: 0.5rem;
+            }
+            .logo { height: 60px; }
+            h1 { font-size: 2.8rem; }
+        }
+        .subtitle {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* --- GRID --- */
+        .menu-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        /* --- TARJETAS (SOLO FOTO Y NOMBRE) --- */
+        .cocktail-card {
+            cursor: pointer; /* Indica que es clicable */
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            text-align: center;
+        }
+
+        .cocktail-card:hover {
+            transform: translateY(-5px);
+            opacity: 0.9;
+        }
+
+        .image-container {
+            width: 100%;
+            height: 400px; /* Imagen alta y elegante */
+            overflow: hidden;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .cocktail-card:hover .image-container img {
+            transform: scale(1.03);
+        }
+
+        /* Icono sutil de "ver más" que aparece al hover */
+        .hover-indicator {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.6);
+            padding: 1rem;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border: 1px solid var(--accent);
+        }
+        
+        .cocktail-card:hover .hover-indicator {
+            opacity: 1;
+        }
+
+        .cocktail-name {
+            font-family: var(--font-title);
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-top: 0.5rem;
+        }
+
+        /* --- MODAL (VENTANA EMERGENTE) --- */
+        .modal-overlay {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); /* Fondo oscuro transparente */
+            backdrop-filter: blur(5px); /* Efecto blur moderno */
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: var(--modal-bg);
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            border-radius: 2px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border: 1px solid #333;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-image {
+            width: 45%;
+            object-fit: cover;
+        }
+
+        .modal-details {
+            padding: 3rem;
+            width: 55%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+        }
+
+        .modal-title {
+            font-family: var(--font-title);
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .modal-desc {
+            font-size: 1rem;
+            color: var(--text-main);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .modal-ingredients-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #444;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .modal-ingredients-list {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.8;
+            list-style: none;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+
+        .close-btn:hover { color: var(--accent); }
+
+        /* --- RESPONSIVE PARA MODAL --- */
+        @media (max-width: 768px) {
+            .modal-content { flex-direction: column; height: 90vh; overflow-y: auto; }
+            .modal-image { width: 100%; height: 250px; }
+            .modal-details { width: 100%; padding: 2rem; }
+            .modal-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-container">
+            <img src="../src/logo.png" alt="Logo Alquimia" class="logo">
+            
+            <h1>EL BAR DE SANTOS</h1>
+        </div>
+        <p class="subtitle">Selecciona un cóctel para conocer su composición</p>
+    </header>
+
+    <main class="menu-container">
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Aperol Spritz"
+                 data-desc="Ligero y burbujeante, con un amargor suave y refrescante."
+                 data-ingredients="Aperol, Prosecco, Agua Mineral, Rodaja de Naranja"
+                 data-img="../src/aperolspritz.png">
+            
+            <div class="image-container">
+                <img src="../src/aperolspritz.png" alt="Aperol Spritz">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Aperol Spritz</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Mojito Clásico"
+                 data-desc="Refrescante y herbal, con el equilibrio perfecto entre cítricos y menta fresca."
+                 data-ingredients="Ron Blanco, Hierbabuena, Limón, Jarabe Simple, Agua Mineral"
+                 data-img="../src/mojito.png">
+            
+            <div class="image-container">
+                <img src="../src/mojito.png" alt="Mojito">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Mojito Clásico</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Daiquiri"
+                 data-desc="Clásico y elegante, con una acidez brillante y final limpio."
+                 data-ingredients="Ron Blanco, Limón, Jarabe Simple"
+                 data-img="../src/daiquiri.png">
+            
+            <div class="image-container">
+                <img src="../src/daiquiri.png" alt="Daiquiri">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Daiquiri</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Margarita"
+                 data-desc="Equilibrio perfecto entre acidez, dulzor y carácter del tequila."
+                 data-ingredients="Tequila Reposado, Licor de Naranja, Jugo de Limón, Sal"
+                 data-img="../src/margarita.png">
+            
+            <div class="image-container">
+                <img src="../src/margarita.png" alt="Margarita">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Margarita</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Old Fashioned"
+                 data-desc="Fuerte y sofisticado, con notas dulces y especiadas."
+                 data-ingredients="Whiskey Bourbon, Jarabe Simple, Bitter Angostura, Piel de Naranja"
+                 data-img="../src/oldfashioned.png">
+            
+            <div class="image-container">
+                <img src="../src/oldfashioned.png" alt="Old Fashioned">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Old Fashioned</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Cuba Libre"
+                 data-desc="Refrescante y clásico, con un toque cítrico inconfundible."
+                 data-ingredients="Ron Blanco, Refresco de Cola, Limón"
+                 data-img="../src/cubalibre.png">
+            
+            <div class="image-container">
+                <img src="../src/cubalibre.png" alt="Cuba Libre">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Cuba Libre</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Paloma"
+                 data-desc="Fresca y vibrante, con notas amargas y cítricas."
+                 data-ingredients="Tequila Reposado, Refresco de Toronja, Limón, Sal"
+                 data-img="../src/paloma.png">
+            
+            <div class="image-container">
+                <img src="../src/paloma.png" alt="Paloma">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Paloma</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Charro Negro"
+                 data-desc="Intenso y refrescante, con un amargor muy mexicano."
+                 data-ingredients="Tequila Reposado, Refresco de Cola, Limón, Sal"
+                 data-img="../src/charronegro.png">
+            
+            <div class="image-container">
+                <img src="../src/charronegro.png" alt="Charro Negro">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Charro Negro</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Carajillo"
+                 data-desc="Energético y aromático, ideal como digestivo."
+                 data-ingredients="Licor 43, Café Espresso"
+                 data-img="../src/carajillo.png">
+            
+            <div class="image-container">
+                <img src="../src/carajillo.png" alt="Carajillo">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Carajillo</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Gin Tonic"
+                 data-desc="Refrescante y aromático, con notas botánicas bien definidas."
+                 data-ingredients="London Dry Gin, Agua Tónica, Limón o Enebro"
+                 data-img="../src/gintonic.png">
+            
+            <div class="image-container">
+                <img src="../src/gintonic.png" alt="Gin Tonic">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Gin Tonic</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Whiskey Ginger"
+                 data-desc="Suave y refrescante, con un toque especiado."
+                 data-ingredients="Whiskey, Ginger Ale"
+                 data-img="../src/whiskeyginger.png">
+            
+            <div class="image-container">
+                <img src="../src/whiskeyginger.png" alt="Whiskey Ginger">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Whiskey Ginger</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Jäger Ginger"
+                 data-desc="Dulce y especiado, con carácter herbal marcado."
+                 data-ingredients="Jägermeister, Ginger Ale, Limón"
+                 data-img="../src/jaggerginger.png">
+            
+            <div class="image-container">
+                <img src="../src/jaggerginger.png" alt="Jäger Ginger">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Jäger Ginger</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Bramble"
+                 data-desc="Afrutado y equilibrado, con un final fresco y ácido."
+                 data-ingredients="London Dry Gin, Jugo de Limón, Granadina, Agua Mineral"
+                 data-img="../src/bramble.png">
+            
+            <div class="image-container">
+                <img src="../src/bramble.png" alt="Bramble">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Bramble</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Horse’s Neck"
+                 data-desc="Refrescante y elegante, con un toque cítrico prolongado."
+                 data-ingredients="Brandy, Ginger Ale, Piel de Limón"
+                 data-img="../src/horseneck.png">
+            
+            <div class="image-container">
+                <img src="../src/horseneck.png" alt="Horse’s Neck">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Horse’s Neck</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Brandy Daisy"
+                 data-desc="Cítrico y ligeramente dulce, con un perfil clásico."
+                 data-ingredients="Brandy, Licor de Naranja, Granadina, Jugo de Limón, Agua Mineral"
+                 data-img="../src/brandydaisy.png">
+            
+            <div class="image-container">
+                <img src="../src/brandydaisy.png" alt="Brandy Daisy">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Brandy Daisy</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Blue Lagoon"
+                 data-desc="Dulce y refrescante, con un vibrante color azul."
+                 data-ingredients="Vodka, Blue Curaçao, Jugo de Limón"
+                 data-img="../src/lagunaazul.png">
+            
+            <div class="image-container">
+                <img src="../src/lagunaazul.png" alt="Blue Lagoon">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Blue Lagoon</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Cosmopolitan"
+                 data-desc="Elegante y fresco, con un balance perfecto entre acidez y dulzor."
+                 data-ingredients="Vodka, Licor de Naranja, Jugo de Limón, Jugo de Arándano"
+                 data-img="../src/cosmopolitan.png">
+            
+            <div class="image-container">
+                <img src="../src/cosmopolitan.png" alt="Cosmopolitan">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Cosmopolitan</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Mai Tai (simplificado)"
+                 data-desc="Tropical y equilibrado, con notas cítricas y un carácter suave del ron."
+                 data-ingredients="Ron Blanco, Licor de Naranja, Jugo de Limón"
+                 data-img="../src/maitai.png">
+            
+            <div class="image-container">
+                <img src="../src/maitai.png" alt="Mai Tai">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Mai Tai (simplificado)</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Tequila Sunrise"
+                 data-desc="Dulce y refrescante, con un degradado visual icónico y notas cítricas suaves."
+                 data-ingredients="Tequila Reposado, Jugo de Naranja, Granadina"
+                 data-img="../src/tequilasunrise.png">
+            
+            <div class="image-container">
+                <img src="../src/tequilasunrise.png" alt="Tequila Sunrise">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Tequila Sunrise</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Jägerinha"
+                 data-desc="Intenso y cítrico, con el carácter herbal del Jägermeister."
+                 data-ingredients="Jägermeister, Jugo de Toronja, Jarabe Simple"
+                 data-img="../src/jaggerinha.png">
+            
+            <div class="image-container">
+                <img src="../src/jaggerinha.png" alt="Jägerinha">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Jägerinha</h2>
+        </article>
+
+        <article class="cocktail-card" 
+                 onclick="openModal(this)"
+                 data-title="Chingón Fashioned"
+                 data-desc="Una versión mexicana del clásico old fashioned, robusta y ligeramente dulce."
+                 data-ingredients="Jägermeister, Tequila Reposado, Jarabe Simple, Piel de Naranja"
+                 data-img="../src/chingonfashioned.png">
+            
+            <div class="image-container">
+                <img src="../src/chingonfashioned.png" alt="Chingón Fashioned">
+                <div class="hover-indicator"><span style="color:white;">+</span></div>
+            </div>
+            <h2 class="cocktail-name">Chingón Fashioned</h2>
+        </article>
+
+    </main>
+
+    <div id="cocktailModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModalDirect()">&times;</button>
+            <img id="modalImg" class="modal-image" src="" alt="">
+            <div class="modal-details">
+                <h2 id="modalTitle" class="modal-title"></h2>
+                <p id="modalDesc" class="modal-desc"></p>
+                
+                <span class="modal-ingredients-title">Ingredientes</span>
+                <ul id="modalIngredients" class="modal-ingredients-list">
+                    </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elementos del DOM
+        const modal = document.getElementById('cocktailModal');
+        const modalImg = document.getElementById('modalImg');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+        const modalIngredients = document.getElementById('modalIngredients');
+
+        // Función para abrir el modal
+        function openModal(element) {
+            // 1. Obtener datos de los atributos data-* del elemento clickeado
+            const title = element.getAttribute('data-title');
+            const desc = element.getAttribute('data-desc');
+            const ingredientsRaw = element.getAttribute('data-ingredients');
+            const imgSrc = element.getAttribute('data-img');
+
+            // 2. Llenar el modal con la info
+            modalTitle.textContent = title;
+            modalDesc.textContent = desc;
+            modalImg.src = imgSrc;
+
+            // 3. Formatear ingredientes (separados por coma en el HTML) a lista
+            modalIngredients.innerHTML = ''; // Limpiar lista anterior
+            const ingredientsArray = ingredientsRaw.split(',');
+            ingredientsArray.forEach(ing => {
+                const li = document.createElement('li');
+                li.textContent = "• " + ing.trim();
+                modalIngredients.appendChild(li);
+            });
+
+            // 4. Mostrar el modal con una pequeña demora para la animación CSS
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        }
+
+        // Función para cerrar si se da click fuera del contenido (en el fondo oscuro)
+        function closeModal(event) {
+            if (event.target === modal) {
+                closeModalDirect();
+            }
+        }
+
+        // Función para cerrar con el botón X
+        function closeModalDirect() {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300); // Esperar a que termine la animación
+        }
+        
+        // Cerrar con la tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModalDirect();
+            }
+        });
+    </script>
+
+</body>
+</html>
